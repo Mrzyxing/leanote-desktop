@@ -110,14 +110,18 @@ define(function () {
         fixContent: function (content) {
             // srip unsage attrs
             var unsafeAttrs = ['id', , /on\w+/i, /data-\w+/i, 'clear', 'target'];
-            content = content.replace(/<([^ >]+?) [^>]*?>/g, resanitize.filterTag(resanitize.stripAttrs(unsafeAttrs)));
+            content = content.replace(/<([^ >]+?) [^>]*?>/g,
+                resanitize.filterTag(resanitize.stripAttrs(unsafeAttrs)));
 
             // strip unsafe tags
             content = resanitize.stripUnsafeTags(content,
                 ['wbr', 'style', 'comment', 'plaintext', 'xmp', 'listing',
-                    'applet', 'base', 'basefont', 'bgsound', 'blink', 'body', 'button', 'dir', 'embed', 'fieldset', 'frameset', 'head',
-                    'html', 'iframe', 'ilayer', 'input', 'isindex', 'label', 'layer', 'legend', 'link', 'marquee', 'menu', 'meta', 'noframes',
-                    'noscript', 'object', 'optgroup', 'option', 'param', 'plaintext', 'script', 'select', 'style', 'textarea', 'xml']
+                    'applet', 'base', 'basefont', 'bgsound', 'blink', 'body', 'button',
+                    'dir', 'embed', 'fieldset', 'frameset', 'head',
+                    'html', 'iframe', 'ilayer', 'input', 'isindex', 'label', 'layer',
+                    'legend', 'link', 'marquee', 'menu', 'meta', 'noframes',
+                    'noscript', 'object', 'optgroup', 'option', 'param', 'plaintext',
+                    'script', 'select', 'style', 'textarea', 'xml']
             );
             return content;
         },
@@ -177,21 +181,21 @@ define(function () {
                 info.notes.push(noteInfo);
                 callback(JSON.stringify(info, null, 2));
                 /*
-                enml.ENMLOfHTML(content, function(err, ENML) {
-                    if (err) {
-                        info.content = content;
-                    }
-                    else {
-                        info.content = ENML;
-                    }
+                 enml.ENMLOfHTML(content, function(err, ENML) {
+                 if (err) {
+                 info.content = content;
+                 }
+                 else {
+                 info.content = ENML;
+                 }
 
-                    if (note.IsMarkdown) {
-                        info.content = '<pre>' + info.content + '</pre>';
-                    }
+                 if (note.IsMarkdown) {
+                 info.content = '<pre>' + info.content + '</pre>';
+                 }
 
-                    callback(me.renderTpl(tpl, info, keys));
-                });
-                */
+                 callback(me.renderTpl(tpl, info, keys));
+                 });
+                 */
             });
         },
 
@@ -202,7 +206,9 @@ define(function () {
             // markdown下
             // [](http://localhost://fileId=32);
             if (note.IsMarkdown) {
-                var reg = new RegExp('!\\[([^\\]]*?)\\]\\(' + Api.evtService.getImageLocalUrlPrefix() + '\\?fileId=([0-9a-zA-Z]{24})\\)', 'g');
+                var reg = new RegExp('!\\[([^\\]]*?)\\]\\('
+                    + Api.evtService.getImageLocalUrlPrefix()
+                    + '\\?fileId=([0-9a-zA-Z]{24})\\)', 'g');
                 var matches = reg.exec(content);
                 while (matches) {
                     var all = matches[0];
@@ -217,7 +223,9 @@ define(function () {
                     matches = reg.exec(content);
                 }
             } else {
-                var reg = new RegExp('<img([^>]*?)src=["\']?' + Api.evtService.getImageLocalUrlPrefix() + '\\?fileId=([0-9a-zA-Z]{24})["\']?(.*?)>', 'g');
+                var reg = new RegExp('<img([^>]*?)src=["\']?'
+                    + Api.evtService.getImageLocalUrlPrefix()
+                    + '\\?fileId=([0-9a-zA-Z]{24})["\']?(.*?)>', 'g');
                 var matches = reg.exec(content);
                 while (matches) {
                     var all = matches[0];
@@ -245,7 +253,9 @@ define(function () {
             // markdown下
             // ![](http://localhost://fileId=32);
             if (note.IsMarkdown) {
-                var reg = new RegExp('\\[([^\\]]*?)\\]\\(' + Api.evtService.getAttachLocalUrlPrefix() + '\\?fileId=([0-9a-zA-Z]{24})\\)', 'g');
+                var reg = new RegExp('\\[([^\\]]*?)\\]\\('
+                    + Api.evtService.getAttachLocalUrlPrefix()
+                    + '\\?fileId=([0-9a-zA-Z]{24})\\)', 'g');
                 var matches = reg.exec(content);
                 while (matches) {
                     var all = matches[0];
@@ -261,7 +271,9 @@ define(function () {
                     matches = reg.exec(content);
                 }
             } else {
-                var reg = new RegExp('<a([^>]*?)href=["\']?' + Api.evtService.getAttachLocalUrlPrefix() + '\\?fileId=([0-9a-zA-Z]{24})["\']?(.*?)>([^<]*)</a>', 'g');
+                var reg = new RegExp('<a([^>]*?)href=["\']?'
+                    + Api.evtService.getAttachLocalUrlPrefix()
+                    + '\\?fileId=([0-9a-zA-Z]{24})["\']?(.*?)>([^<]*)</a>', 'g');
                 var matches = reg.exec(content);
 
                 while (matches) {
@@ -324,10 +336,13 @@ define(function () {
                         } else {
                             if (!eachMatch.isAttach) {
                                 var href = 'leanote://file/getImage?fileId=' + eachMatch.fileId;
-                                link = '<img ' + eachMatch.pre + 'src="' + href + '"' + eachMatch.back + '>';
+                                link = '<img ' + eachMatch.pre + 'src="' + href + '"'
+                                    + eachMatch.back + '>';
                             } else {
-                                var href = 'leanote://file/getAttach?fileId=' + eachMatch.fileId;
-                                link = '<a ' + eachMatch.pre + 'href="' + href + '"' + eachMatch.back + '>' + eachMatch.title + '</a>';
+                                var href = 'leanote://file/getAttach?fileId='
+                                    + eachMatch.fileId;
+                                link = '<a ' + eachMatch.pre + 'href="' + href + '"'
+                                    + eachMatch.back + '>' + eachMatch.title + '</a>';
                             }
                         }
                     }
@@ -347,7 +362,8 @@ define(function () {
                         md5: base64AndMd5.md5,
                         type: attach.Type,
                         title: attach.Title,
-                        createdTime: me.getLeanoteTime(attach.UpdatedTime || attach.CreatedTime),
+                        createdTime: me.getLeanoteTime(
+                            attach.UpdatedTime || attach.CreatedTime),
                         isAttach: true
                     }
                 }
@@ -372,7 +388,8 @@ define(function () {
                                 md5: base64AndMd5.md5,
                                 type: doc.Type,
                                 title: doc.Title,
-                                createdTime: me.getLeanoteTime(doc.UpdatedTime || doc.CreatedTime),
+                                createdTime: me.getLeanoteTime(
+                                    doc.UpdatedTime || doc.CreatedTime),
                             }
                         }
                         cb();
@@ -423,19 +440,24 @@ define(function () {
 
         loadingIsClosed: false,
 
-        dfsExport: function (notebookId, targetPath, processedNoteNum, totalNoteNum) {
-            Api.notebook.getSubNotebooks(notebookId).filter(function (note) {
-                return note.isParent;
-            }).forEach(function (note) {
-                // mkdir and set path
-                var subDir = targetPath + Api.commonService.getPathSep() + note.Title;
-                Api.nodeFs.mkdirSync(subDir);
+        dfsExport: function (notebookId, targetPath, processedNoteNum,
+            totalNoteNum) {
+            var me = this;
+            if (Api.notebook.getSubNotebooks(notebookId) != false) {
+                Api.notebook.getSubNotebooks(notebookId).forEach(function (note) {
+                    // mkdir and set path
+                    var subDir = targetPath + Api.commonService.getPathSep() + note.Title;
+                    if (Api.nodeFs.existsSync(subDir) == false) {
+                        Api.nodeFs.mkdirSync(subDir);
+                    }
 
-                // dfs
-                var processPlan = dfsExport(note.NotebookId, subDir, processedNoteNum, totalNoteNum);
-                processedNoteNum = processPlan[0];
-                totalNoteNum = processPlan[1];
-            });
+                    // dfs
+                    var processPlan = me.dfsExport(note.NotebookId, subDir,
+                        processedNoteNum, totalNoteNum);
+                    processedNoteNum = processPlan[0];
+                    totalNoteNum = processPlan[1];
+                });
+            }
 
             // export
             Api.noteService.getNotes(notebookId, function (notes) {
@@ -469,10 +491,15 @@ define(function () {
             if (!notebookId) {
                 return;
             }
-
             me.getTargetPath(function (targetPath) {
                 if (!targetPath) {
                     return;
+                }
+
+                targetPath = Api.path.join(targetPath[0],
+                    Api.notebook.getNotebook(notebookId).Title);
+                if (Api.nodeFs.existsSync(targetPath) == false) {
+                    Api.nodeFs.mkdirSync(targetPath);
                 }
 
                 me.loadingIsClosed = false;
@@ -492,19 +519,22 @@ define(function () {
                 var totalNoteNum = 1;
 
                 // get tree structure only contains dir via notebookId then export notebook recursion
-                Api.notebook.getSubNotebooks(notebookId).filter(function (note) {
-                    return note.isParent;
-                }).forEach(function (note) {
-                    // mkdir and set path
-                    var subDir = targetPath + Api.commonService.getPathSep() + note.Title;
-                    Api.nodeFs.mkdirSync(subDir);
+                if (Api.notebook.getSubNotebooks(notebookId) != false) {
+                    Api.notebook.getSubNotebooks(notebookId).forEach(function (note) {
+                        // mkdir and set path
+                        var subDir = Api.path.join(targetPath, note.Title);
+                        if (Api.nodeFs.existsSync(subDir) == false) {
+                            Api.nodeFs.mkdirSync(subDir);
+                        }
 
-                    // dfs
-                    var processPlan = dfsExport(note.NotebookId, subDir, processedNoteNum, totalNoteNum);
-                    processedNoteNum = processPlan[0];
-                    totalNoteNum = processPlan[1];
+                        // dfs
+                        var processPlan = me.dfsExport(note.NotebookId, subDir,
+                            processedNoteNum, totalNoteNum);
+                        processedNoteNum = processPlan[0];
+                        totalNoteNum = processPlan[1];
 
-                });
+                    });
+                }
 
                 // export
                 Api.noteService.getNotes(notebookId, function (notes) {
@@ -527,7 +557,10 @@ define(function () {
                         }, processedNoteNum, totalNoteNum);
                     }, function () {
                         me.hideLoading();
-                        Notify.show({title: 'Info', body: getMsg('plugin.export_leanote.exportSuccess')});
+                        Notify.show({
+                            title: 'Info',
+                            body: getMsg('plugin.export_leanote.exportSuccess')
+                        });
                     });
                 });
 
@@ -580,7 +613,10 @@ define(function () {
                         }, i, total);
                     }, function () {
                         me.hideLoading();
-                        Notify.show({title: 'Info', body: getMsg('plugin.export_leanote.exportSuccess')});
+                        Notify.show({
+                            title: 'Info',
+                            body: getMsg('plugin.export_leanote.exportSuccess')
+                        });
                     });
                 });
             });
@@ -635,7 +671,10 @@ define(function () {
 
                 }, function () {
                     me.hideLoading();
-                    Notify.show({title: 'Info', body: getMsg('plugin.export_leanote.exportSuccess')});
+                    Notify.show({
+                        title: 'Info',
+                        body: getMsg('plugin.export_leanote.exportSuccess')
+                    });
                 });
             });
         },
@@ -652,11 +691,14 @@ define(function () {
             }
 
             setTimeout(function () {
-                Api.loading.setMsg(Api.getMsg('plugin.export_leanote.Exporting: ') + (note.Title || getMsg('Untitled')));
+                Api.loading.setMsg(
+                    Api.getMsg('plugin.export_leanote.Exporting: ') + (note.Title
+                    || getMsg('Untitled')));
                 Api.loading.setProgressRate(i + '/' + total);
             }, 100);
 
-            var name = note.Title ? note.Title + '.leanote' : getMsg('Untitled') + '.leanote';
+            var name = note.Title ? note.Title + '.leanote' : getMsg('Untitled')
+            + '.leanote';
             name = me.fixFilename(name);
 
             var targetPath = path + Api.commonService.getPathSep() + name;
