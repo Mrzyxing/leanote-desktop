@@ -206,7 +206,8 @@ function openIt() {
         nodeIntegration: true,
         contextIsolation: false, // https://github.com/electron/electron/issues/27961
         enableRemoteModule: true
-      }
+      },
+      icon: 'public/images/logo/leanote.png'
     }
   );
 
