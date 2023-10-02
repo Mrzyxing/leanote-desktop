@@ -36,6 +36,7 @@ define(function() {
 		langs: {
 			'en-us': {
 				'export': 'Export Leanote',
+				'exportAll': 'Recursive Export Leanote',
 				'Exporting': 'Exporting',
 				'Exporting: ': 'Exporting: ',
 				'exportSuccess': 'Leanote saved successful!',
@@ -44,6 +45,7 @@ define(function() {
 			},
 			'de-de': {
 				'export': 'Als Leanote exportieren',
+				'exportAll': 'Exportation récursive',
 				'Exporting': 'Exportiere',
 				'Exporting: ': 'Exportiere: ',
 				'exportSuccess': 'Leanote erfolgreich gespeichert!',
@@ -52,6 +54,7 @@ define(function() {
 			},
 			'zh-cn': {
 				'export': '导出Leanote',
+				'exportAll': '递归导出Leanote',
 				'Exporting': '正在导出',
 				'Exporting: ': '正在导出: ',
 				'exportSuccess': 'Leanote导出成功!',
@@ -59,6 +62,7 @@ define(function() {
 			},
 			'zh-hk': {
 				'export': '導出Leanote',
+				'exportAll': '遞歸導出Leanote',
 				'Exporting': '正在導出',
 				'Exporting: ': '正在導出: ',
 				'exportSuccess': 'Leanote導出成功!',
@@ -439,6 +443,132 @@ define(function() {
 
 		loadingIsClosed: false,
 
+		// 递归导出
+		dfsExport: function (notebookId, targetPath, processedNoteNum, totalNoteNum) {
+			var me = this;
+			if (Api.notebook.getSubNotebooks(notebookId) != false) {
+				Api.notebook.getSubNotebooks(notebookId).forEach(function (note) {
+					// mkdir and set path
+					var subDir = Api.path.join(targetPath, note.Title);
+					if (Api.nodeFs.existsSync(subDir) == false) {
+						Api.nodeFs.mkdirSync(subDir);
+					}
+
+					// dfs
+					var processPlan = me.dfsExport(note.NotebookId, subDir,
+						processedNoteNum, totalNoteNum);
+					processedNoteNum = processPlan[0];
+					totalNoteNum = processPlan[1];
+				});
+			}
+
+			// export
+			Api.noteService.getNotes(notebookId, function (notes) {
+				if (!notes) {
+					me.hideLoading();
+					return;
+				}
+
+				totalNoteNum += notes.length;
+				async.eachSeries(notes, function (note, cb) {
+					if (me.loadingIsClosed) {
+						cb();
+						me.hideLoading();
+						return;
+					}
+					processedNoteNum++;
+					Api.loading.setProgress(100 * processedNoteNum / totalNoteNum);
+					me._exportLeanote(note, targetPath, function () {
+						cb();
+					}, processedNoteNum, totalNoteNum);
+				}, function () {
+					// close loading only first level allowed
+				});
+			});
+
+			return [processedNoteNum, totalNoteNum];
+		},
+
+		exportLeanoteForNotebookStructure: function (notebookId) {
+			var me = this;
+			if (!notebookId) {
+				return;
+			}
+
+			me.getTargetPath(function (targetPath) {
+				if (!targetPath) {
+					return;
+				}
+
+				targetPath = Api.path.join(targetPath[0],
+					Api.notebook.getNotebook(notebookId).Title);
+				if (Api.nodeFs.existsSync(targetPath) == false) {
+					Api.nodeFs.mkdirSync(targetPath);
+				}
+
+				me.loadingIsClosed = false;
+				Api.loading.show(Api.getMsg('plugin.export_leanote.Exporting'),
+					{
+						hasProgress: true,
+						isLarge: true,
+						onClose: function () {
+							me.loadingIsClosed = true;
+							setTimeout(function () {
+								me.hideLoading();
+							});
+						}
+					});
+				Api.loading.setProgress(1);
+				var processedNoteNum = 0;
+				var totalNoteNum = 1;
+
+				// get tree structure only contains dir via notebookId then export notebook recursion
+				if (Api.notebook.getSubNotebooks(notebookId) != false) {
+					Api.notebook.getSubNotebooks(notebookId).forEach(function (note) {
+						// mkdir and set path
+						var subDir = Api.path.join(targetPath, note.Title);
+						if (Api.nodeFs.existsSync(subDir) == false) {
+							Api.nodeFs.mkdirSync(subDir);
+						}
+
+						// dfs
+						var processPlan = me.dfsExport(note.NotebookId, subDir, processedNoteNum, totalNoteNum);
+						processedNoteNum = processPlan[0];
+						totalNoteNum = processPlan[1];
+
+					});
+				}
+
+				// export
+				Api.noteService.getNotes(notebookId, function (notes) {
+					if (!notes) {
+						me.hideLoading();
+						return;
+					}
+
+					totalNoteNum += notes.length;
+					async.eachSeries(notes, function (note, cb) {
+						if (me.loadingIsClosed) {
+							cb();
+							me.hideLoading();
+							return;
+						}
+						++processedNoteNum;
+						Api.loading.setProgress(100 * processedNoteNum / totalNoteNum);
+						me._exportLeanote(note, targetPath, function () {
+							cb();
+						}, processedNoteNum, totalNoteNum);
+					}, function () {
+						me.hideLoading();
+						Notify.show({
+							title: 'Info',
+							body: getMsg('plugin.export_leanote.exportSuccess')
+						});
+					});
+				});
+			});
+		},
+
 		exportLeanoteForNotebook: function (notebookId) {
 			var me = this;
 			if (!notebookId) {
@@ -609,6 +739,19 @@ define(function() {
 		        	}
 		        })()
 		    });
+
+			Api.addExportMenuForNotebook({
+				label: Api.getMsg('plugin.export_leanote.exportAll'),
+				enabled: function (notebookId) {
+					return true;
+				},
+				click: (function () {
+					return function (notebookId) {
+						me.init();
+						me.exportLeanoteForNotebookStructure(notebookId);
+					}
+				})()
+			});
 		},
 		// 打开后
 		onOpenAfter: function() {

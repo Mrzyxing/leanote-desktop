@@ -15,6 +15,7 @@ define(function() {
 			'de-de': {
 				'importLeanote': 'Leanote Datei importieren',
 				'Choose Leanote files(.leanote)': 'Leanote Dateien (.leanote) auswählen',
+				'Choose Leanote directory(contains .leanote)': 'Choisissez le répertoire Leanote (contient .leanote)',
 				'Close': "Schliessen",
 				'Import to': "Importiere in Notizbuch",
 				"Done! %s notes imported!": "Abgeschlossen! Es wurden %s Notizen importiert!",
@@ -25,6 +26,7 @@ define(function() {
 			'zh-cn': {
 				'importLeanote': '导入Leanote',
 				'Choose Leanote files(.leanote)': '选择Leanote文件(.leanote)',
+				'Choose Leanote directory(contains .leanote)': '选择Leanote文件夹(.leanote)',
 				'Close': "关闭",
 				'Import to': "导入至",
 				"Done! %s notes imported!": "完成, 成功导入 %s 个笔记!",
@@ -35,6 +37,7 @@ define(function() {
 			'zh-hk': {
 				'importLeanote': '導入Leanote',
 				'Choose Leanote files(.leanote)': '選擇Leanote文件(.leanote)',
+				'Choose Leanote directory(contains .leanote)': '選擇Leanote文件夾(.leanote)',
 				'Close': "關閉",
 				"Import to": "導入至",
 				"Done! %s notes imported!": "完成, 成功導入 %s 個筆記!",
@@ -75,6 +78,11 @@ define(function() {
 	                      <i class="fa fa-upload"></i>
 	                      <span class="lang">Choose Leanote files(.leanote)</span>
 	                    </a>
+	                    <!-- import directory -->
+                        <a id="chooseLeanoteDir" class="btn btn-success btn-choose-file">
+                          <i class="fa fa-upload"></i>
+                          <span class="lang">Choose Leanote directory(contains .leanote)</span>
+                        </a>
 	                    <!-- 消息 -->
 	                    <div id="importLeanoteMsg" class="alert alert-info">
 	                        <div class="curImportFile"></div>
@@ -190,6 +198,104 @@ define(function() {
 						alert(err);
 					}
 				);
+			});
+
+			// import,chosen dir
+			$('#chooseLeanoteDir').click(function () {
+				function dfsListDir(path, curNotebookId) {
+					var notes = [];
+					var fileNames = Api.nodeFs.readdirSync(path);
+					for (var i in fileNames) {
+						var fileName = fileNames[i];
+						var curFile = Api.path.join(path, fileName);
+						if (Api.nodeFs.statSync(curFile).isDirectory()) {
+							// create node
+							var childNotebookID = Api.notebook.addChildNotebookDir(curNotebookId, fileName);
+							dfsListDir(curFile, childNotebookID);
+						} else if (curFile.endsWith('.leanote')) {
+							// save note
+							notes.push(curFile)
+						} else {
+							console.log('skip not leanote file :' + curFile)
+						}
+					}
+
+					importService.importFromLeanote(curNotebookId, notes,
+						// 全局
+						function (ok) {
+							setTimeout(function () {
+								$('#importLeanoteMsg .allImport').html(me.getMsg('Done! %s notes imported!', n));
+							}, 500);
+						},
+						// 单个文件
+						function (ok, filename) {
+							if (ok) {
+								$('#importLeanoteMsg .curImportFile').html(me.getMsg("Import file: %s Success!", filename));
+							} else {
+								$('#importLeanoteMsg .curImportFile').html(me.getMsg("Import file: %s Failure, is leanote file ?", filename));
+							}
+						},
+						// 单个笔记
+						function (note) {
+							if (note) {
+								n++;
+								$('#importLeanoteMsg .curImportNote').html(me.getMsg("Import: %s Success!", note.Title));
+
+								// 不要是新的, 不然切换笔记时又会保存一次
+								note.IsNew = false;
+
+								// 插入到当前笔记中
+								Note.addSync([note]);
+							}
+						}
+					);
+				}
+				var callback = function (path){
+					if(!paths) {
+						return;
+					}
+
+					var notebookId = me._curNotebook.NotebookId;
+
+					var n = 0;
+
+					me.clear();
+
+					if (!importService) {
+						importService = nodeRequire('./public/plugins/import_leanote/import');
+					}
+
+					// dfs dir
+					paths.forEach(function (path) {
+						dfsListDir(path, notebookId);
+					});
+
+				}
+
+				var po = Api.gui.dialog.showOpenDialog(
+					Api.gui.getCurrentWindow(),
+					{
+						properties: ['openDirectory', 'multiSelections']
+					},
+					callback
+				)
+
+				if(typeof(po) != "object"){
+					return;
+				}
+
+				po.then(
+					function(re){
+						if(re.canceled !== false || re.filePaths.length < 1){
+							return;
+						}
+						callback(re.filePaths);
+					},
+					function(err){
+						alert(err);
+					}
+				);
+
 			});
 		},
 

@@ -1023,6 +1023,19 @@ Notebook.addChildNotebook = function(target) {
 }
 
 //-------------
+// 添加目录结构的笔记本
+Notebook.addChildNotebookDir = function (parentNotebookId, title) {
+    var self = Notebook;
+    var notebookId = getObjectId();
+    // isSilent must be true and isNew must be false otherwise subDir name will be undefined
+    self.tree.addNodes(self.tree.getNodeByTId(parentNotebookId),
+        {Title: title, NotebookId: notebookId, IsNew: true}, true, false);
+    // save to db
+    Notebook.doAddNotebook(notebookId, title, parentNotebookId);
+    return notebookId;
+}
+
+//-------------
 // 删除
 Notebook.deleteNotebook = function(target) {
     var self = Notebook;

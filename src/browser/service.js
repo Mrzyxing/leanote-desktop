@@ -37,6 +37,7 @@ const Common = CommonService
 const NodeFs = require('fs');
 const NodePath = require('path');
 const Resanitize = require('./src/resanitize');
+var Path = require('path');
 
 // 分发服务
 // route = /note/notebook

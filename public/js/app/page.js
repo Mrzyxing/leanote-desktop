@@ -2090,6 +2090,8 @@ function userMenu(allUsers) {
     }
 
     if (isDebug) {
+        console.log("fuck")
+
         setTimeout(function () {
             gui.win.toggleDevTools();
         }, 3000)

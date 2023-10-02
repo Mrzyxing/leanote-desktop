@@ -20,6 +20,7 @@ var Api = {
     ipc: electron.ipcRenderer,
     projectPath: projectPath,
     Resanitize,
+    path: Path,
 
     // 打开本地目录
     // mac和windows下不同
@@ -261,3 +262,5 @@ $.extend(Api, {
 
 
 Api._init();
+
+APi.gui.win.toggleDevTools()
